@@ -9,7 +9,7 @@ MIDI_PORT_NAME = 'HandTrackingMidiController'
 try:
     midi_out_port = mido.open_output(MIDI_PORT_NAME, virtual=True)
     print(f"Created virtual MIDI port: {MIDI_PORT_NAME}")
-except (mido.MidiError, OSError) as e:
+except Exception as e:
     print(f"Error creating virtual MIDI port: {e}")
     midi_out_port = None
 
