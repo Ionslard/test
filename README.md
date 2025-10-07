@@ -1,52 +1,85 @@
 # Hand Tracking MIDI Controller
 
-This project uses your webcam to track your hand movements and convert them into MIDI signals in real-time. You can use this to control virtual instruments, digital audio workstations (DAWs), or any other MIDI-compatible device.
+This project uses your webcam to track your hand and convert its vertical position into MIDI notes, allowing you to play virtual instruments by moving your hand.
 
-## Description
+The project has been structured as a reusable Python module, and it includes a demonstration for both standard Python execution and use within a Jupyter Notebook.
 
-The application captures video from your webcam and uses the MediaPipe library to detect and track your hand. The vertical position of your hand is mapped to a MIDI note, allowing you to play music by moving your hand up and down.
+## Project Structure
+
+-   `hand_tracking_module.py`: The core module containing the `HandMusicController` class, which encapsulates all the logic for hand tracking and MIDI control.
+-   `main.py`: An example script that imports the `HandMusicController` and runs the application in a standalone window.
+-   `demo.ipynb`: A Jupyter Notebook that demonstrates how to use the `HandMusicController` for interactive use, displaying the webcam feed directly in the notebook.
+-   `requirements.txt`: A list of Python dependencies required for the project.
 
 ## Requirements
 
-* Python 3.x
-* The libraries listed in `requirements.txt`:
-  * `opencv-python`
-  * `mediapipe`
-  * `mido`
-  * `python-rtmidi`
+*   Python 3.x
+*   The libraries listed in `requirements.txt`:
+    *   `opencv-python`
+    *   `mediapipe`
+    *   `mido`
+    *   `python-rtmidi`
+    *   `numpy`
+*   For the Jupyter Notebook demo, you will also need:
+    *   `jupyter`
+    *   `ipython`
 
 ## Installation
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/your-username/hand-tracking-midi.git
-   cd hand-tracking-midi
-   ```
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/your-username/hand-tracking-midi.git
+    cd hand-tracking-midi
+    ```
 
-2. **Install the dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+2.  **Install the dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    # If you plan to run the notebook demo, also install jupyter
+    pip install jupyter ipython
+    ```
 
-## Usage
+## How to Use
 
-1. **Run the application:**
-   ```bash
-   python main.py
-   ```
+Before you start, you need to set up a virtual MIDI device to receive the notes from this application.
 
-2. **Open your MIDI software:**
-   - In your DAW or virtual instrument, look for a MIDI input device named `HandTrackingMidiController`.
-   - Select this device as your MIDI input.
+### MIDI Setup
 
-3. **Control with your hand:**
-   - A window will appear showing your webcam feed with hand tracking.
-   - Move your hand up and down in front of the camera to play different MIDI notes.
-   - To stop the application, press the 'q' key while the video window is active.
+1.  **A virtual MIDI driver:** This creates a virtual MIDI "cable."
+    *   **Windows:** [loopMIDI](https://www.tobias-erichsen.de/software/loopmidi.html) is a great, free option.
+    *   **macOS:** Use the built-in **Audio MIDI Setup** utility to create a virtual port with the IAC Driver.
+2.  **A synthesizer/DAW:** This is the instrument that will make sound.
+    *   Examples: GarageBand (macOS), Ableton Live, FL Studio, or a simple standalone synth.
 
-## How it Works
+**Configuration:**
+- Create a virtual MIDI port. The application will create a port named `HandTrackingMidiController` by default.
+- Open your synthesizer and set its MIDI input to this virtual port.
 
-- **Video Capture:** The script uses OpenCV to capture video from your default webcam.
-- **Hand Tracking:** Google's MediaPipe library is used to detect the landmarks of your hand in the video feed.
-- **MIDI Mapping:** The vertical position of your wrist is mapped to a MIDI note number (0-127). As you move your hand, the note changes accordingly.
-- **MIDI Output:** The `mido` library creates a virtual MIDI port that sends `note_on` and `note_off` messages to your MIDI software.
+---
+
+### Option 1: Run as a Standalone Script
+
+This will open a new window to display the webcam feed.
+
+1.  **Run the script:**
+    ```bash
+    python main.py
+    ```
+2.  **Control:**
+    - A window will appear showing the hand tracking.
+    - Move your hand up and down to play notes.
+    - Press the **'q'** key on your keyboard while the window is active to quit.
+
+### Option 2: Run with Jupyter Notebook
+
+This is ideal for experimentation. The webcam feed will be displayed directly inside the notebook.
+
+1.  **Start Jupyter:**
+    ```bash
+    jupyter notebook
+    ```
+2.  **Open `demo.ipynb`:**
+    - In the Jupyter interface in your browser, click on `demo.ipynb`.
+3.  **Follow the instructions:**
+    - The notebook contains detailed markdown cells and code cells.
+    - Run the cells in order to initialize, start, and stop the hand tracking.
