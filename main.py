@@ -4,7 +4,10 @@ def main():
     """
     Initializes and runs the hand tracking music controller.
     """
-    # Create an instance of the controller
+    # Create an instance of the controller.
+    # By default, it controls CC #1 (Modulation).
+    # You can change this, for example, to control CC #7 (Volume):
+    # controller = HandMusicController(cc_control_number=7)
     controller = HandMusicController()
 
     # Start the controller with a window display.

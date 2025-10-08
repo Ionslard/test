@@ -11,7 +11,7 @@ class HandMusicController:
     """
 
     def __init__(self, midi_port_name='HandTrackingMidiController', max_hands=1,
-                 detection_confidence=0.7, tracking_confidence=0.7):
+                 detection_confidence=0.7, tracking_confidence=0.7, cc_control_number=1):
         """
         Initializes the HandMusicController.
         Args:
@@ -19,11 +19,14 @@ class HandMusicController:
             max_hands (int): Maximum number of hands to detect.
             detection_confidence (float): Minimum confidence value for hand detection.
             tracking_confidence (float): Minimum confidence value for hand tracking.
+            cc_control_number (int): The MIDI CC number to control with the x-axis.
         """
         self.midi_port_name = midi_port_name
+        self.cc_control_number = cc_control_number
         self.midi_out_port = None
         self.running = False
         self.current_note = -1
+        self.current_cc_value = -1
 
         # Initialize MediaPipe Hands
         self.mp_hands = mp.solutions.hands
@@ -57,6 +60,10 @@ class HandMusicController:
         inverted_y = self.height - y
         return int((inverted_y / self.height) * 127)
 
+    def _map_x_to_cc_value(self, x):
+        """Maps an x-coordinate to a MIDI CC value."""
+        return int((x / self.width) * 127)
+
     def _process_frame(self, frame):
         """
         Processes a single frame for hand tracking and MIDI control.
@@ -70,6 +77,8 @@ class HandMusicController:
 
         if results.multi_hand_landmarks:
             hand_landmarks = results.multi_hand_landmarks[0]
+
+            # --- Note (Y-axis) Logic ---
             wrist_y = hand_landmarks.landmark[self.mp_hands.HandLandmark.WRIST].y * self.height
             note_to_play = self._map_y_to_note(wrist_y)
 
@@ -82,11 +91,22 @@ class HandMusicController:
 
                 self.current_note = note_to_play
 
+            # --- CC (X-axis) Logic ---
+            wrist_x = hand_landmarks.landmark[self.mp_hands.HandLandmark.WRIST].x * self.width
+            cc_value_to_send = self._map_x_to_cc_value(wrist_x)
+
+            if cc_value_to_send != self.current_cc_value and self.midi_out_port:
+                self.midi_out_port.send(mido.Message('control_change', control=self.cc_control_number, value=cc_value_to_send))
+                self.current_cc_value = cc_value_to_send
+
             # Drawing landmarks and info on the frame
             self.mp_drawing.draw_landmarks(frame, hand_landmarks, self.mp_hands.HAND_CONNECTIONS)
             cv2.putText(frame, f'Note: {self.current_note}', (10, 30),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+            cv2.putText(frame, f'CC {self.cc_control_number}: {self.current_cc_value}', (10, 70),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
         else:
+            # If no hand is detected, turn off the current note
             if self.current_note != -1 and self.midi_out_port:
                 self.midi_out_port.send(mido.Message('note_off', note=self.current_note))
                 self.current_note = -1
